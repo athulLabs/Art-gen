@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Pattern App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0a0a0c;
+            color: #f0f0f5;
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #d1d1e0;
+        }
+        canvas {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #121218;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #f0f0f5;
+            color: #0a0a0c;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Generative Art</h1>
+        <canvas id="artCanvas" width="500" height="500"></canvas>
+        <button onclick="generatePattern()">Regenerate</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function generatePattern() {
+            // Clear canvas with dark void background
+            ctx.fillStyle = '#121218';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const palettes = [
+                ['#ff3366', '#ff9933', '#33ccff', '#9933ff'],
+                ['#e6c687', '#b38f54', '#5c4a2a', '#f4e8c1'], // Earthy / Mineral vibe
+                ['#00ffff', '#ff00ff', '#ffff00', '#ffffff']  // Cyber / High contrast
+            ];
+            const chosenPalette = palettes[Math.floor(Math.random() * palettes.length)];
+
+            // Number of rings/layers
+            const layers = 8;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < layers; i++) {
+                let radius = (canvas.width / 2) - (i * 25) - 20;
+                if (radius <= 0) break;
+
+                ctx.beginPath();
+                ctx.lineWidth = Math.random() * 4 + 1;
+                ctx.strokeStyle = chosenPalette[Math.floor(Math.random() * chosenPalette.length)];
+                
+                // Draw complex arcs and shapes
+                let startAngle = Math.random() * Math.PI;
+                let endAngle = startAngle + (Math.random() * Math.PI + 0.5);
+                
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.stroke();
+
+                // Add random connecting nodes
+                if (Math.random() > 0.5) {
+                    ctx.fillStyle = chosenPalette[Math.floor(Math.random() * chosenPalette.length)];
+                    ctx.beginPath();
+                    let angle = Math.random() * Math.PI * 2;
+                    let x = centerX + Math.cos(angle) * radius;
+                    let y = centerY + Math.sin(angle) * radius;
+                    ctx.arc(x, y, Math.random() * 6 + 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Generate initial pattern on load
+        generatePattern();
+    </script>
+</body>
+</html>
