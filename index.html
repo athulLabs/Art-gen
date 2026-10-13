@@ -3,125 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cinematic AI Studio</title>
+    <title>Cinematic Verse Studio</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #050508;
-            color: #f0f0f5;
+            background-color: #030305; color: #f0f0f5;
             font-family: system-ui, -apple-system, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 15px;
         }
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            width: 100%;
-            max-width: 360px;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            width: 100%; max-width: 360px;
         }
         h1 {
-            font-size: 1rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: #9494a0;
-            font-weight: 500;
+            font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase;
+            color: #7a7a8c; font-weight: 500;
         }
-        .frame {
-            width: 100%;
-            aspect-ratio: 9 / 16;
-            background-color: #0b0b12;
-            border-radius: 16px;
-            overflow: hidden;
+        .card-frame {
+            width: 100%; aspect-ratio: 9 / 16;
+            background: linear-gradient(145deg, #0b0b12, #040407);
+            border-radius: 18px; padding: 30px 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
-            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden;
         }
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: opacity 0.3s ease;
-        }
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #9494a0;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
+        /* Background aesthetic glow */
+        .card-frame::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
             pointer-events: none;
         }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #f0f0f5, #c5c5d0);
-            color: #050508;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
+        .tag {
+            font-size: 0.75rem; letter-spacing: 2px; color: #ff3366; text-transform: uppercase;
             font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-            transition: transform 0.1s, opacity 0.2s;
         }
-        button:active {
-            transform: scale(0.98);
-            opacity: 0.9;
+        .verse-box {
+            margin: auto 0;
+            display: flex; flex-direction: column; gap: 15px;
         }
+        .malayalam-text {
+            font-size: 1.35rem; line-height: 1.6; color: #ffffff; font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+        .english-sub {
+            font-size: 0.9rem; line-height: 1.4; color: #9494a0; font-style: italic;
+        }
+        .footer-brand {
+            font-size: 0.7rem; letter-spacing: 2px; color: #4a4a5e; text-transform: uppercase;
+        }
+        .btn-group {
+            width: 100%; display: flex; gap: 10px;
+        }
+        button {
+            flex: 1; padding: 14px;
+            background: linear-gradient(135deg, #f0f0f5, #c5c5d0); color: #030305;
+            border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Cinematic Void</h1>
-        <div class="frame">
-            <div class="loading" id="loadingText">Generating AI Art...</div>
-            <img id="aiImage" alt="AI Generated Art" onload="hideLoading()">
+        <h1>Verse & Void Studio</h1>
+        
+        <div class="card-frame" id="captureCard">
+            <div class="tag" id="cardTag">// CINEMATIC VIBE</div>
+            <div class="verse-box">
+                <div class="malayalam-text" id="malayalamText">തളരില്ല ഞാൻ, ഇടറില്ലെൻ കാലടികൾ,<br>തടസ്സങ്ങൾ തകർത്തു ഞാൻ മുന്നേറും.</div>
+                <div class="english-sub" id="englishSub">"I will not falter, my steps will not stagger,<br>I will smash through barriers and march ahead."</div>
+            </div>
+            <div class="footer-brand">Aesthetic Reel Frame</div>
         </div>
-        <button onclick="generateNewArt()">Generate New Frame</button>
+
+        <div class="btn-group">
+            <button onclick="nextVerse()">Next Verse</button>
+        </div>
     </div>
 
     <script>
-        // Curated cinematic, high-contrast, and traditional fusion prompts
-        const artPrompts = [
-            "dark cinematic void background, low-angle worm's eye perspective, glowing neon architectural lines, high contrast chiaroscuro lighting, 9:16",
-            "traditional kerala mural art style, natural mineral pigments, aged lime-plaster temple wall texture, dark atmospheric background, 9:16",
-            "modest old tiled-roof house during gentle monsoon rain, CRT television glowing softly in the dark room, cinematic mood, 9:16",
-            "abstract glowing golden dust particles floating in deep space, high contrast dark minimalist background, cinematic atmosphere, 9:16",
-            "cyberpunk neon aesthetic, moody dark rainy street reflection, cinematic color grading, 9:16"
+        const contentDatabase = [
+            {
+                tag: "// INSPIRATION",
+                ml: "തളരില്ല ഞാൻ, ഇടറില്ലെൻ കാലടികൾ,<br>തടസ്സങ്ങൾ തകർത്തു ഞാൻ മുന്നേറും.",
+                en: "\"I will not falter, my steps will not stagger, I will smash through barriers and march ahead.\""
+            },
+            {
+                tag: "// RAP BATTLE",
+                ml: "കളത്തിൽ ഇറങ്ങിയാൽ പിന്നെ ഞാൻ രാജാവ്,<br>നിന്റെ കളി ഇവിടെ തീർന്നു മോനെ.",
+                en: "\"Once I step into the arena, I am the king. Your game ends right here, my friend.\""
+            },
+            {
+                tag: "// MIDNIGHT VOID",
+                ml: "ഇരുളിന്റെ ആഴങ്ങളിൽ വെളിച്ചം തീർക്കുമ്പോൾ,<br>ലോകം നിശബ്ദമായി നോക്കിനിൽക്കും.",
+                en: "\"When you forge light in the depths of darkness, the world stands silent and watches.\""
+            },
+            {
+                tag: "// MONSOON MOOD",
+                ml: "തോരാത്ത മഴയത്ത് ഓർമ്മകളുടെ ജാലകം തുറക്കുമ്പോൾ,<br>കാലം പോലും നിശ്ചലമാവുന്നു.",
+                en: "\"When opening the window of memories during endless rain, even time stands still.\""
+            }
         ];
 
-        function hideLoading() {
-            document.getElementById('loadingText').style.display = 'none';
+        function nextVerse() {
+            const randomItem = contentDatabase[Math.floor(Math.random() * contentDatabase.length)];
+            document.getElementById('cardTag').innerText = randomItem.tag;
+            document.getElementById('malayalamText').innerHTML = randomItem.ml;
+            document.getElementById('englishSub').innerHTML = randomItem.en;
         }
-
-        function generateNewArt() {
-            document.getElementById('loadingText').style.display = 'block';
-            const randomPrompt = artPrompts[Math.floor(Math.random() * artPrompts.length)];
-            
-            // Adds a timestamp parameter to force the browser to load the fresh image instead of cached version
-            const timestamp = new Date().getTime();
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(randomPrompt)}?seed=${timestamp}`;
-            
-            document.getElementById('aiImage').src = imageUrl;
-        }
-
-        // Generate first image on page load
-        generateNewArt();
     </script>
 </body>
 </html>
