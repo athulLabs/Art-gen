@@ -3,235 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generative Cinema V3</title>
+    <title>Cinematic AI Studio</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
-            background-color: #050508; color: #e1e1e6;
+            background-color: #050508;
+            color: #f0f0f5;
             font-family: system-ui, -apple-system, sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
         }
         .container {
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-            width: 100%; max-width: 400px; padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 360px;
         }
         h1 {
-            font-size: 1.1rem; letter-spacing: 3px; text-transform: uppercase;
-            color: #9494a0; font-weight: 500; text-shadow: 0 0 10px rgba(148, 148, 160, 0.4);
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #9494a0;
+            font-weight: 500;
         }
-        #canvas-wrapper {
-            width: 100%; aspect-ratio: 1 / 1; position: relative;
+        .frame {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            background-color: #0b0b12;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
+            position: relative;
         }
-        canvas {
-            width: 100%; height: 100%; background-color: #09090e;
-            border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 255, 255, 0.03);
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #9494a0;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            pointer-events: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f0f0f5, #c5c5d0);
+            color: #050508;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
             cursor: pointer;
-        }
-        .controls {
-            width: 100%; display: flex; flex-direction: column; gap: 10px;
-        }
-        .button-group {
-            display: flex; gap: 10px; width: 100%;
-        }
-        button, label {
-            flex: 1; padding: 14px; text-align: center;
-            border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
-            letter-spacing: 1px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-        .primary {
-            background: linear-gradient(135deg, #f0f0f5, #c5c5d0); color: #050508;
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+            transition: transform 0.1s, opacity 0.2s;
         }
-        .primary:active { transform: scale(0.98); opacity: 0.9; }
-        
-        .secondary {
-            background: rgba(255, 255, 255, 0.05); color: #9494a0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
         }
-        .secondary:active { background: rgba(255, 255, 255, 0.1); }
-
-        /* Audio Control Toggle */
-        #audioToggle { display: none; }
-        .audio-label { display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .audio-icon { width: 14px; height: 14px; border-radius: 50%; background: #ff3366; transition: background 0.3s; }
-        #audioToggle:checked + .audio-label { color: #f0f0f5; background: rgba(255, 255, 255, 0.1); }
-        #audioToggle:checked + .audio-label .audio-icon { background: #00ffff; box-shadow: 0 0 10px #00ffff; }
     </style>
 </head>
 <body>
 
-    <!-- Link to Royalty Free Music: "Deep Space" by Kevin MacLeod (incompetech.com) -->
-    <!-- Music License: CC BY 4.0 -->
-    <audio id="bgMusic" loop>
-        <source src="https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deep%20Space.mp3" type="audio/mpeg">
-    </audio>
-
     <div class="container">
-        <h1>Generative Cinema</h1>
-        <div id="canvas-wrapper">
-            <canvas id="artCanvas" width="600" height="600"></canvas>
+        <h1>Cinematic Void</h1>
+        <div class="frame">
+            <div class="loading" id="loadingText">Generating AI Art...</div>
+            <img id="aiImage" alt="AI Generated Art" onload="hideLoading()">
         </div>
-        
-        <div class="controls">
-            <div class="button-group">
-                <input type="checkbox" id="audioToggle" onchange="toggleAudio()">
-                <label for="audioToggle" class="secondary audio-label"><div class="audio-icon"></div> Score</label>
-                <button onclick="saveCanvas()" class="secondary">Save PNG</button>
-            </div>
-            <button onclick="startNewGeneration()" class="primary">Regenerate</button>
-        </div>
+        <button onclick="generateNewArt()">Generate New Frame</button>
     </div>
 
     <script>
-        const canvas = document.getElementById('artCanvas');
-        const ctx = canvas.getContext('2d');
-        const music = document.getElementById('bgMusic');
-
-        // Cinematic color palettes
-        const palettes = [
-            ['#e6c687', '#b38f54', '#ff7733', '#ffffff'], // Warm Gold
-            ['#00ffff', '#3388ff', '#9900ff', '#ffffff'], // Void Cyan
-            ['#ff3366', '#ff9933', '#ffcc00', '#ffffff'], // Chiaroscuro
-            ['#33ff33', '#0099ff', '#ffffff', '#0a0a0a']  // Digital Forest
+        // Curated cinematic, high-contrast, and traditional fusion prompts
+        const artPrompts = [
+            "dark cinematic void background, low-angle worm's eye perspective, glowing neon architectural lines, high contrast chiaroscuro lighting, 9:16",
+            "traditional kerala mural art style, natural mineral pigments, aged lime-plaster temple wall texture, dark atmospheric background, 9:16",
+            "modest old tiled-roof house during gentle monsoon rain, CRT television glowing softly in the dark room, cinematic mood, 9:16",
+            "abstract glowing golden dust particles floating in deep space, high contrast dark minimalist background, cinematic atmosphere, 9:16",
+            "cyberpunk neon aesthetic, moody dark rainy street reflection, cinematic color grading, 9:16"
         ];
 
-        let state = {
-            palette: palettes[1],
-            particles: [],
-            rings: [],
-            core: { radius: 15 },
-            globalAlpha: 1.0,
-            animationTime: 0
-        };
-
-        function toggleAudio() {
-            const isChecked = document.getElementById('audioToggle').checked;
-            if (isChecked) { music.play(); } else { music.pause(); }
+        function hideLoading() {
+            document.getElementById('loadingText').style.display = 'none';
         }
 
-        // --- CORE Generative Functions ---
-
-        function randomPalette() { return palettes[Math.floor(Math.random() * palettes.length)]; }
-
-        function startNewGeneration() {
-            // New palette & reset variables
-            state.palette = randomPalette();
-            state.particles = [];
-            state.rings = [];
+        function generateNewArt() {
+            document.getElementById('loadingText').style.display = 'block';
+            const randomPrompt = artPrompts[Math.floor(Math.random() * artPrompts.length)];
             
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-
-            // 1. Generate Dust Particles
-            for (let i = 0; i < 60; i++) {
-                state.particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2.5 + 0.5,
-                    color: state.palette[Math.floor(Math.random() * (state.palette.length - 1))],
-                    alpha: Math.random() * 0.4 + 0.1
-                });
-            }
-
-            // 2. Generate Cinematic Rings
-            const ringCount = 14;
-            for (let i = 0; i < ringCount; i++) {
-                let radius = (canvas.width / 2.1) - (i * 18);
-                if (radius <= 10) break;
-                state.rings.push({
-                    radius: radius,
-                    lineWidth: Math.random() * 3 + 0.5,
-                    color: state.palette[Math.floor(Math.random() * (state.palette.length - 1))],
-                    startAngle: Math.random() * Math.PI * 2,
-                    arcLength: Math.random() * (Math.PI * 1.6) + (Math.PI * 0.4),
-                    pulseSpeed: Math.random() * 0.02 + 0.005,
-                    rotationSpeed: (Math.random() - 0.5) * 0.005 // Subtle rotation
-                });
-            }
-
-            // 3. New Core
-            state.core.radius = Math.random() * 15 + 8;
+            // Adds a timestamp parameter to force the browser to load the fresh image instead of cached version
+            const timestamp = new Date().getTime();
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(randomPrompt)}?seed=${timestamp}`;
+            
+            document.getElementById('aiImage').src = imageUrl;
         }
 
-        // --- DRAWING LOOP (Dynamic Animation) ---
-
-        function drawFrame() {
-            state.animationTime += 1;
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-
-            // Deep background clear
-            ctx.fillStyle = '#07070c';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 1. Background atmospheric gradient glow
-            let bgGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, canvas.width / 1.6);
-            bgGrad.addColorStop(0, '#101018'); // Minimal base glow
-            bgGrad.addColorStop(1, '#07070c');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Draw Dust Particles
-            state.particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.alpha + (Math.sin(state.animationTime * 0.01) * 0.05); // Twinkle
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1.0;
-
-            // 3. Draw Dynamic Rings
-            state.rings.forEach(ring => {
-                ring.startAngle += ring.rotationSpeed; // Slowly rotate
-                let dynamicLineWidth = ring.lineWidth + (Math.sin(state.animationTime * ring.pulseSpeed) * 1.5);
-                
-                ctx.beginPath();
-                ctx.lineWidth = Math.max(0.1, dynamicLineWidth);
-                ctx.strokeStyle = ring.color;
-                
-                // Active Glow based on pulse
-                ctx.shadowColor = ring.color;
-                ctx.shadowBlur = Math.max(5, dynamicLineWidth * 6);
-
-                ctx.arc(centerX, centerY, ring.radius, ring.startAngle, ring.startAngle + ring.arcLength);
-                ctx.stroke();
-                ctx.shadowBlur = 0; // Reset shadow
-            });
-
-            // 4. Draw Core
-            let coreGrad = ctx.createRadialGradient(centerX, centerY, 2, centerX, centerY, state.core.radius);
-            coreGrad.addColorStop(0, '#ffffff');
-            coreGrad.addColorStop(0.3, state.palette[0]);
-            coreGrad.addColorStop(1, 'transparent');
-            ctx.fillStyle = coreGrad;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, state.core.radius * 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Loop smoothly
-            requestAnimationFrame(drawFrame);
-        }
-
-        // --- Utility ---
-        function saveCanvas() {
-            const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            const link = document.createElement('a');
-            link.download = `cinema-void-${Date.now()}.png`;
-            link.href = image;
-            link.click();
-        }
-
-        // Set up canvas interaction
-        canvas.addEventListener('mousedown', startNewGeneration);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startNewGeneration(); });
-
-        // Initialize & Run
-        startNewGeneration();
-        requestAnimationFrame(drawFrame);
+        // Generate first image on page load
+        generateNewArt();
     </script>
 </body>
 </html>
