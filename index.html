@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShotCraft - Virtual Cinematic Camera Studio</title>
+    <title>ShotCraft - Fully Featured Virtual Cinematic Camera Studio</title>
     <style>
         body {
             margin: 0;
@@ -13,13 +13,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 0;
+            padding: 15px 0;
             min-height: 100vh;
             box-sizing: border-box;
         }
         h1 {
             font-size: 1.1rem;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             letter-spacing: 1px;
             color: #d4d4f7;
             text-align: center;
@@ -38,12 +38,14 @@
             box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, filter 0.2s ease;
         }
-        /* Cinematic Grid Lines */
+        
+        /* Framing Guides */
         .grid-line-h, .grid-line-v {
             position: absolute;
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
         }
         .grid-line-h { width: 100%; height: 1px; }
         .grid-line-h1 { top: 33.33%; }
@@ -52,10 +54,29 @@
         .grid-line-v1 { left: 33.33%; }
         .grid-line-v2 { left: 66.66%; }
 
+        /* Cinematic Letterbox Bars */
+        .letterbox-top, .letterbox-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: #000;
+            z-index: 3;
+            transition: height 0.3s ease;
+            pointer-events: none;
+        }
+        .letterbox-top { top: 0; }
+        .letterbox-bottom { bottom: 0; }
+        .active-letterbox .letterbox-top, 
+        .active-letterbox .letterbox-bottom {
+            height: 12%;
+        }
+
         .viewfinder-overlay {
-            z-index: 2;
+            z-index: 4;
             text-align: center;
             padding: 10px;
+            pointer-events: none;
         }
         .viewfinder-text {
             color: #a5b4fc;
@@ -67,48 +88,56 @@
         .lens-info {
             color: #818cf8;
             font-size: 0.75rem;
-            margin-top: 5px;
+            margin-top: 4px;
         }
 
-        /* Control Panel Styles */
+        /* Controls Dashboard */
         .controls-panel {
             width: 85vw;
             max-width: 340px;
-            margin-top: 15px;
+            margin-top: 12px;
             background: #12121a;
             border: 1px solid #2a2a3d;
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             box-sizing: border-box;
         }
         .control-group {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .control-group label {
             display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
             color: #9ca3af;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .control-group input[type="range"] {
             width: 100%;
             accent-color: #4f46e5;
         }
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
         .action-button {
-            width: 100%;
+            flex: 1;
             background-color: #4f46e5;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            margin-top: 5px;
+        }
+        .action-button.secondary {
+            background-color: #2a2a3d;
+            color: #d4d4f7;
         }
         .action-button:active {
-            background-color: #4338ca;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -116,11 +145,15 @@
 
     <h1>ShotCraft Studio</h1>
     
+    <!-- Viewfinder Screen -->
     <div class="canvas-container" id="viewfinder">
-        <div class="grid-line-h grid-line-h1"></div>
-        <div class="grid-line-h grid-line-h2"></div>
-        <div class="grid-line-v grid-line-v1"></div>
-        <div class="grid-line-v grid-line-v2"></div>
+        <div class="letterbox-top"></div>
+        <div class="letterbox-bottom"></div>
+        
+        <div class="grid-line-h grid-line-h1" id="gridH1"></div>
+        <div class="grid-line-h grid-line-h2" id="gridH2"></div>
+        <div class="grid-line-v grid-line-v1" id="gridV1"></div>
+        <div class="grid-line-v grid-line-v2" id="gridV2"></div>
         
         <div class="viewfinder-overlay">
             <div class="viewfinder-text" id="statusText">REC 9:16</div>
@@ -128,40 +161,75 @@
         </div>
     </div>
 
+    <!-- Controls Panel -->
     <div class="controls-panel">
         <div class="control-group">
             <label><span>Focal Length</span> <span id="focalVal">35mm</span></label>
-            <input type="range" id="focalRange" min="18" max="85" value="35" oninput="updateLens()">
+            <input type="range" id="focalRange" min="18" max="85" value="35" oninput="updateStudio()">
         </div>
+        
         <div class="control-group">
             <label><span>Aperture (DOF)</span> <span id="apertureVal">f/2.8</span></label>
-            <input type="range" id="apertureRange" min="1" max="16" step="0.5" value="2.8" oninput="updateAperture()">
+            <input type="range" id="apertureRange" min="1" max="16" step="0.5" value="2.8" oninput="updateStudio()">
         </div>
-        <button class="action-button" onclick="triggerSnapshot()">Take Snapshot</button>
+
+        <div class="control-group">
+            <label><span>Exposure / Brightness</span> <span id="exposureVal">0 EV</span></label>
+            <input type="range" id="exposureRange" min="-2" max="2" step="0.5" value="0" oninput="updateStudio()">
+        </div>
+
+        <div class="button-row">
+            <button class="action-button secondary" onclick="toggleLetterbox()">Cinematic Bars</button>
+            <button class="action-button secondary" onclick="toggleGrid()">Toggle Grid</button>
+        </div>
+
+        <div class="button-row">
+            <button class="action-button" onclick="triggerSnapshot()">Take Snapshot</button>
+        </div>
     </div>
 
     <script>
-        function updateLens() {
-            const val = document.getElementById('focalRange').value;
-            document.getElementById('focalVal').innerText = val + 'mm';
-            updateLensDisplay();
-        }
+        let gridVisible = true;
+        let letterboxActive = false;
 
-        function updateAperture() {
-            const val = document.getElementById('apertureRange').value;
-            document.getElementById('apertureVal').innerText = 'f/' + val;
-            updateLensDisplay();
-        }
+        function updateStudio() {
+            const focal = document.getElementById('focalRange').value;
+            const aperture = document.getElementById('apertureRange').value;
+            const exposure = document.getElementById('exposureRange').value;
 
-        function updateLensDisplay() {
-            const f = document.getElementById('focalRange').value;
-            const a = document.getElementById('apertureRange').value;
-            document.getElementById('lensDisplay').innerText = f + 'mm • f/' + a;
-            
-            // Scale viewfinder slightly based on focal length to simulate optical zoom
+            // Update text labels
+            document.getElementById('focalVal').innerText = focal + 'mm';
+            document.getElementById('apertureVal').innerText = 'f/' + aperture;
+            document.getElementById('exposureVal').innerText = exposure + ' EV';
+            document.getElementById('lensDisplay').innerText = focal + 'mm • f/' + aperture;
+
+            // Apply visual transformations to viewfinder
             const viewfinder = document.getElementById('viewfinder');
-            const scale = 1 + ((f - 35) * 0.0015);
+            const scale = 1 + ((focal - 35) * 0.0015);
+            
+            // Simulate exposure change via brightness filter and depth of field via blur
+            const blurAmount = Math.abs(aperture - 8) * 0.15; 
+            const brightness = 1 + (exposure * 0.15);
+
             viewfinder.style.transform = `scale(${scale})`;
+            viewfinder.style.filter = `brightness(${brightness}) blur(${blurAmount}px)`;
+        }
+
+        function toggleLetterbox() {
+            letterboxActive = !letterboxActive;
+            const viewfinder = document.getElementById('viewfinder');
+            if (letterboxActive) {
+                viewfinder.classList.add('active-letterbox');
+            } else {
+                viewfinder.classList.remove('active-letterbox');
+            }
+        }
+
+        function toggleGrid() {
+            gridVisible = !gridVisible;
+            ['gridH1', 'gridH2', 'gridV1', 'gridV2'].forEach(id => {
+                document.getElementById(id).style.display = gridVisible ? 'block' : 'none';
+            });
         }
 
         function triggerSnapshot() {
@@ -170,13 +238,13 @@
             
             viewfinder.style.backgroundColor = '#ffffff';
             statusText.style.color = '#000000';
-            statusText.innerText = 'SAVED';
+            statusText.innerText = 'SAVED SHOT';
             
             setTimeout(() => {
                 viewfinder.style.background = 'linear-gradient(135deg, #1e1e2f, #0d0d14)';
                 statusText.style.color = '#a5b4fc';
                 statusText.innerText = 'REC 9:16';
-            }, 200);
+            }, 250);
         }
     </script>
 
